@@ -2,40 +2,39 @@
 #include <algorithm>    // std::random_shuffle
 #include <random>
 #include <set>
+#define SIZE 100
 using namespace std;
 
 int n;
-vector<vector<pair<int, int>>> population;
-vector<int> fitnessScores;
+vector<vector<pair<float, float>>> population;
+vector<float> fitnessScores;
 
-int squaredDistance(pair<int, int> p1, pair<int, int> p2){
+float squaredDistance(pair<float, float> p1, pair<float, float> p2){
     return (p1.first - p2.first) * (p1.first - p2.first) + (p1.second - p2.second) * (p1.second - p2.second);
 }
 
-vector<pair<int, int>> createIndividual(vector<pair<int, int>> chromosome){
-    vector<pair<int, int>> newIndivid = chromosome;
+vector<pair<float, float>> createIndividual(vector<pair<float, float>> chromosome){
+    vector<pair<float, float>> newIndivid = chromosome;
     random_shuffle(newIndivid.begin(), newIndivid.end());
     return newIndivid;
 }
 
-vector<pair<int, int>> createCities(){
+vector<pair<float, float>> createCities(){
     random_device r;
     seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
     mt19937 eng(seed);
-    uniform_int_distribution<> dist(0, n*n - 1);
-    vector<pair<int, int>> cities;
+    uniform_real_distribution<> dist(0, n*n - 1);
+    vector<pair<float, float>> cities;
+    cities.resize(n);
     for(int i = 0; i < n; i++) {
-        int rnd = dist(eng);
-        int x = rnd % n * 2; // used of % here is just fine
-        int y = rnd / n * 2;
-        cities[i].first = x;
-        cities[i].second = y;
+        cities[i].first = dist(eng);
+        cities[i].second = dist(eng);
     }
     return cities;
 }
 
-int fitness(vector<pair<int, int>> individ){
-    int fitnessScore = 0;
+float fitness(vector<pair<float, float>> individ){
+    float fitnessScore = 0;
     for(int i = 0; i < n; i++){
         if(i == n - 1){
             fitnessScore += squaredDistance(individ[i], individ[0]);
@@ -46,68 +45,54 @@ int fitness(vector<pair<int, int>> individ){
     return fitnessScore;
 }
 
-void createPopulation(vector<pair<int, int>> chromosome){
-    for(int i = 0; i < n % 10; i++){
+void createPopulation(vector<pair<float, float>> chromosome){
+    for(int i = 0; i < SIZE; i++){
         population[i] = createIndividual(chromosome);
     }
 }
 
-int calculatePopulationFitness(){
-    int sumFitness = 0;
-    for(int i = 0; i < n % 10; i++){
+float calculatePopulationFitness(){
+    float sumFitness = 0;
+    for(int i = 0; i < n; i++){
         fitnessScores[i] = fitness(population[i]);
         sumFitness += fitnessScores[i];
     }
     return sumFitness;
 }
 
-vector<double> prepareSelection(int sumFitness){
-    vector<double> prepare;
-    prepare.resize(n % 10);
-    double previousProb = 0;
-    for(int i = 0; i < n % 10; i++){
-        prepare[i] = previousProb + ((double)fitnessScores[i] / sumFitness);
+vector<float> prepareSelection(float sumFitness){
+    vector<float> prepare;
+    prepare.resize(SIZE);
+    float previousProb = 0;
+    for(int i = 0; i < SIZE; i++){
+        prepare[i] = previousProb + ((float)fitnessScores[i] / sumFitness);
         previousProb = prepare[i];
     }
     return prepare;
 }
 
-int selection(vector<double> preparedSelection){
-    random_device r;
-    seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
-    mt19937 eng(seed);
-    uniform_int_distribution<> dist(0, 1);
-    double rnd = dist(eng);
-    int parent;
-    bool selected = true;
-    for(int j = 0; j < n % 10; j++){
-        if( j == n - 1){
-            parent = j;
-        }else if(preparedSelection[j] < rnd && preparedSelection[j + 1] > rnd){
-            parent = j + 1;
-        }
-    }
-    return parent;
+int selection(vector<float> preparedSelection){
+    sort
 }
 
-//pair<vector<int>, vector<int>> 
-void crossover(vector<int> firstParent, vector<int> secondParent){
+ 
+pair<vector<pair<float, float>>, vector<pair<float, float>>> crossover(vector<pair<float, float>> firstParent, vector<pair<float, float>> secondParent){
     random_device r;
     seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
     mt19937 eng(seed);
     uniform_int_distribution<> dist(0, firstParent.size() - 1);
-    int rnd1 = 3;//dist(eng);
-    int rnd2 = 7;//dist(eng);
+    int rnd1 = dist(eng);
+    int rnd2 = dist(eng);
 
     if(rnd1 > rnd2){
         swap(rnd1, rnd2);
     }
 
-    vector<int> firstOffspring, secondOffspring;
+    vector<pair<float, float>> firstOffspring, secondOffspring;
     firstOffspring.resize(firstParent.size());
     secondOffspring.resize(secondParent.size());
-    set<int> takenIndexesFirstOffspring, takenIndexesSecondOffspring;
-    set<int> takenValuesFirstOffspring, takenValuesSecondOffspring;
+    set<float> takenIndexesFirstOffspring, takenIndexesSecondOffspring;
+    set<pair<float, float>> takenValuesFirstOffspring, takenValuesSecondOffspring;
     for(int i = rnd1; i <= rnd2; i++){
         firstOffspring[i] = firstParent[i];
         secondOffspring[i] = secondParent[i];
@@ -118,7 +103,7 @@ void crossover(vector<int> firstParent, vector<int> secondParent){
     }
 
     int i = rnd1;
-    int value = secondParent[i];
+    pair<float, float> value = secondParent[i];
     bool stop = false;
     while(i <= rnd2){
         int j = rnd1;
@@ -130,7 +115,7 @@ void crossover(vector<int> firstParent, vector<int> secondParent){
         }
         //if not
         if(j == rnd2 + 1){
-            int searchValue = firstParent[i];
+            pair<float, float> searchValue = firstParent[i];
             bool exit = true;
             while(exit){
                 int j = 0;
@@ -167,87 +152,119 @@ void crossover(vector<int> firstParent, vector<int> secondParent){
         }
     }
 
-
     i = rnd1;
     value = firstParent[i];
     stop = false;
-    while(i <= rnd2 || !stop){
+    while(i <= rnd2){
         int j = rnd1;
+        //check if the value has been copied to the child
         for(; j <= rnd2; j++){
             if(value == secondOffspring[j]){
                 break;
             }
         }
+        //if not
         if(j == rnd2 + 1){
-            value = secondParent[i];
-            int j = 0;
-            for(; j <= firstParent.size(); j++){
-                if(value == firstParent[j]){
-                    break;
+            pair<float, float> searchValue = secondParent[i];
+            bool exit = true;
+            while(exit){
+                int j = 0;
+                for(; j <= firstParent.size(); j++){
+                    if(searchValue == firstParent[j]){
+                        break;
+                    }
+                }
+                if(j >= rnd1 && j <= rnd2){
+                    searchValue = secondParent[j];
+                }else{
+                    secondOffspring[j] = value;
+                    takenIndexesSecondOffspring.insert(j);
+                    takenValuesSecondOffspring.insert(value);
+                    exit = false;
                 }
             }
-            if(j >= rnd1 && j <= rnd2){
-                i = j;
-            }else{
-                secondOffspring[j] = value;
-                takenIndexesSecondOffspring.insert(j);
-                takenValuesSecondOffspring.insert(value);
-            }
-        }else{
-            i++;
-            value = firstParent[i];
         }
+        i++;
+        value = firstParent[i];
     }
 
     for(int i = 0; i < firstParent.size(); i++){
-        if(takenIndexesSecondOffspring.count(i) == 0){
+        if(takenValuesSecondOffspring.count(firstParent[i]) == 0){
             for(int j = 0; j < firstParent.size(); j++){
-                if(takenValuesFirstOffspring.count(firstParent[j])){
-                    secondOffspring[i] = firstParent[j];
-                    takenIndexesSecondOffspring.insert(i);
-                    takenValuesSecondOffspring.insert(firstParent[j]);
+                if(takenIndexesSecondOffspring.count(j) == 0){
+                    secondOffspring[j] = firstParent[i];
+                    takenIndexesSecondOffspring.insert(j);
+                    takenValuesSecondOffspring.insert(firstParent[i]);
+                    break;
                 }
             }
         }
     }
 
-    cout<<"FIRST OFFSPRING:\n";
-    for(int i = 0; i < firstOffspring.size(); i++){
-        cout<<firstOffspring[i]<<" ";
-    }
-    cout<<endl;
+    return make_pair(firstOffspring, secondOffspring);
+}
 
-    cout<<"SECOND OFFSPRING:\n";
-    for(int i = 0; i < firstOffspring.size(); i++){
-        cout<<secondOffspring[i]<<" ";
-    }
-    cout<<endl;
+vector<pair<float, float>> mutation(vector<pair<float, float>> individual){
+    random_device r;
+    seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
+    mt19937 eng(seed);
+    uniform_int_distribution<> dist(0, individual.size() - 1);
+    int rnd1 = dist(eng);
+    int rnd2 = dist(eng);
+
+    pair<float, float> temp = individual[rnd1];
+    individual[rnd1] = individual[rnd2];
+    individual[rnd2] = individual[rnd1];
+    return individual;
 }
 
 int main(){
-    // cin>>n;
-    // fitnessScores.resize(n % 10);
-    // population.resize(n % 10);
-    // vector<pair<int, int>> cities = createCities();
-    // createPopulation(cities);
-    // int sumFitness = calculatePopulationFitness();
-    // vector<double> prepared = prepareSelection(sumFitness);
-    // set<int> used;
-    // for(int i = 0; i < n % 20; i++){
-    //     int firstParent;
-    //     do{
-    //         firstParent = selection(prepared);
-    //     }while(used.count(firstParent));
-    //     used.insert(firstParent);
-    //     int secondParent;
-    //     do{
-    //         secondParent = selection(prepared);
-    //     }while(used.count(secondParent));
-    //     used.insert(secondParent);
-    //     crossover(firstParent, secondParent);
+    cin>>n;
+    fitnessScores.resize(SIZE);
+    population.resize(SIZE);
+    vector<pair<float, float>> cities = createCities();
+    createPopulation(cities);
+    bool stopAlgorithm = false;
+    float currentFittest = -1;
+    int countTries = 0;
+    while(countTries < 6){
+        float sumFitness = calculatePopulationFitness();
+        if(currentFittest == -1){
+            currentFittest = sumFitness;
+        }
+        if(sumFitness < currentFittest){
+            currentFittest = sumFitness;
+            countTries = 0;
+        }
+        //vector<float> prepared = prepareSelection(sumFitness);
+        set<int> used;
+        vector<vector<pair<float, float>>> wholeOffspring;
+        for(int i = 0; i < n % 20; i++){
+            int firstParent;
+            do{
+                firstParent = selection(prepared);
+            }while(used.count(firstParent));
+            used.insert(firstParent);
+            int secondParent;
+            do{
+                secondParent = selection(prepared);
+            }while(used.count(secondParent));
+            used.insert(secondParent);
+            pair<vector<pair<float, float>>, vector<pair<float, float>>> offspring;
+            offspring = (crossover(population[firstParent], population[secondParent]));
+            wholeOffspring.push_back(mutation(offspring.first));
+            wholeOffspring.push_back(mutation(offspring.second));
+        }
 
-    // }
-
-    crossover(vector<int>{8, 4, 7, 3, 6, 2, 5, 1, 9, 0}, vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+        int j = 0;
+        for(int i = 0; i < population.size(); i++){
+            if(used.count(i) == 0){
+                population[i] = wholeOffspring[j];
+                j++;
+            }
+        }
+        countTries++;
+    }
+    cout<<endl;
     return 0;
 }
