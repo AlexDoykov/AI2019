@@ -72,7 +72,20 @@ vector<float> prepareSelection(float sumFitness){
 }
 
 int selection(vector<float> preparedSelection){
-    sort
+    random_device r;
+    seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
+    mt19937 eng(seed);
+    uniform_real_distribution<> dist(0, 1);
+    float rnd = dist(eng);
+    int parent;
+    for(int j = 0; j < SIZE; j++){
+        if( j == n - 1){
+            parent = j;
+        }else if(preparedSelection[j] < rnd && preparedSelection[j + 1] > rnd){
+            parent = j + 1;
+        }
+    }
+    return parent;
 }
 
  
@@ -236,7 +249,7 @@ int main(){
             currentFittest = sumFitness;
             countTries = 0;
         }
-        //vector<float> prepared = prepareSelection(sumFitness);
+        vector<float> prepared = prepareSelection(sumFitness);
         set<int> used;
         vector<vector<pair<float, float>>> wholeOffspring;
         for(int i = 0; i < n % 20; i++){
