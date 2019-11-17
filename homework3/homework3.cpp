@@ -42,7 +42,7 @@ float fitness(vector<pair<float, float>> individ){
             fitnessScore += squaredDistance(individ[i], individ[i + 1]);
         }
     }
-    return fitnessScore;
+    return 1/fitnessScore;
 }
 
 void createPopulation(vector<pair<float, float>> chromosome){
@@ -82,7 +82,7 @@ int selection(vector<float> preparedSelection){
         if( j == n - 1){
             parent = j;
         }else if(preparedSelection[j] < rnd && preparedSelection[j + 1] > rnd){
-            parent = j + 1;
+            return parent = j + 1;
         }
     }
     return parent;
