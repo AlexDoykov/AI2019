@@ -42,7 +42,7 @@ float fitness(vector<pair<float, float>> individ){
             fitnessScore += squaredDistance(individ[i], individ[i + 1]);
         }
     }
-    return 1/fitnessScore;
+    return fitnessScore;
 }
 
 void createPopulation(vector<pair<float, float>> chromosome){
@@ -51,13 +51,20 @@ void createPopulation(vector<pair<float, float>> chromosome){
     }
 }
 
-float calculatePopulationFitness(){
-    float sumFitness = 0;
-    for(int i = 0; i < SIZE; i++){
-        fitnessScores[i] = fitness(population[i]);
+pair<float, float> calculatePopulationFitness(){
+    float fitnessScore = fitness(population[0]);
+    fitnessScores[0] = 1/fitnessScore;
+    float sumFitness = fitnessScores[0];
+    float minFitness = fitnessScore;
+    for(int i = 1; i < SIZE; i++){
+        fitnessScore = fitness(population[i]);
+        fitnessScores[i] = 1/fitnessScore;
         sumFitness += fitnessScores[i];
+        if(fitnessScore < minFitness){
+            minFitness = fitnessScore;
+        }
     }
-    return sumFitness;
+    return make_pair(sumFitness, minFitness);
 }
 
 vector<float> prepareSelection(float sumFitness){
@@ -258,18 +265,18 @@ int main(){
     float currentFittest = -1;
     int countTries = 0;
     while(countTries < 6){
-        float sumFitness = calculatePopulationFitness();
+        pair<float, float> sumAndMaxFitness = calculatePopulationFitness();
+        float sumFitness = sumAndMaxFitness.first;
+        float maxFitness = sumAndMaxFitness.second;
         if(currentFittest == -1){
-            currentFittest = sumFitness;
+            currentFittest = maxFitness;
         }
-        if(sumFitness < currentFittest){
-            currentFittest = sumFitness;
+        if(maxFitness < currentFittest){
+            currentFittest = maxFitness;
             countTries = 0;
         }
-        cout<<currentFittest<<endl;
         vector<float> prepared = prepareSelection(sumFitness);
         set<int> used;
-        vector<vector<pair<float, float>>> wholeOffspring;
         for(int i = 0; i < 20; i++){
             int firstParent;
             firstParent = selection(prepared);
@@ -279,8 +286,14 @@ int main(){
             used.insert(secondParent);
             pair<vector<pair<float, float>>, vector<pair<float, float>>> offspring;
             offspring = (crossover(population[firstParent], population[secondParent]));
-            addChild(mutate(offspring.first), prepared);
-            addChild(mutate(offspring.second), prepared);
+            if(fitness(offspring.first) > currentFittest){
+                offspring.first = mutate(offspring.first);
+            }
+            addChild(offspring.first, prepared);
+            if(fitness(offspring.first) > currentFittest){
+                offspring.first = mutate(offspring.first);
+            }
+            addChild(offspring.second, prepared);
         }
         countTries++;
     }
