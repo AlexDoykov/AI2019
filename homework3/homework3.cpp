@@ -264,7 +264,7 @@ int main(){
     createPopulation(cities);
     float currentFittest = -1;
     int countTries = 0;
-    while(countTries < 6){
+    while(countTries < 260){
         pair<float, float> sumAndMaxFitness = calculatePopulationFitness();
         float sumFitness = sumAndMaxFitness.first;
         float maxFitness = sumAndMaxFitness.second;
@@ -297,6 +297,6 @@ int main(){
         }
         countTries++;
     }
-    cout<<currentFittest<<endl;
+    cout<<sqrt(currentFittest)<<endl;
     return 0;
 }
